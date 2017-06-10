@@ -4,38 +4,43 @@
 import sys
 import subprocess
 
-nbModulesManquant = 0
+missingModulesCount = 0
+
+print "This installer will download the required modules in order to run the job executor"
+print "The following modules are needed : "
+print "		- pika"
+print "		- paramiko"
 
 try:
 	import pika
 except ImportError:
-	print "Installation de pika"
+	print "Installing pika"
+
 	try:
 		subprocess.check_output(["pip", "install", "pika"])
-		print("installation reussie")
-		nbModulesManquant +=1
+		print "Success"
+		missingModulesCount +=1
 	except subprocess.CalledProccessError, e:
-		print "Erreur lors de l'installation du module pika"
+		print "Failed to install pika"
 		print e.message
 		sys.exit()
 
 try:
 	import paramiko
 except ImportError:
-	print "Installation de paramiko"
+	print "Installing paramiko"
 	try:
 		subprocess.check_output(["pip", "install", "paramiko"])
-		print("installation reussie")
-
-		nbModulesManquant += 1
+		print "Success"
+		missingModulesCount += 1
 	except subprocess.CalledProccessError, e:
-		print "Erreur lors de l'installation du module paramiko"
+		print "Failed to install paramiko"
 		print e.message
 		sys.exit()
 
-if nbModulesManquant > 0:
+if missingModulesCount > 0:
 	print "--------------------------------"
-	print "Installation de " + str(nbModulesManquant) + " module(s) reussie"
+	print "Installed successfully " + str(missingModulesCount) + " module(s)"
 else:
-	print "Les modules necessaires sont deja presents"
+	print "All the modules were already installed"
 sys.exit()

@@ -5,14 +5,14 @@ import pika
 import os
 from Tkinter import *
 from ttk import *
-from fenetre import Fenetre
+from window import Window
 
 
 
 
 def main():
     root = Tk()
-    fenetre = Fenetre(root)
+    window = Window(root)
     root.mainloop()
 
 

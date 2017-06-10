@@ -13,16 +13,16 @@ import socket
 
 
 
-class Fenetre(Frame):
+class Window(Frame):
 
-    # Initialisation de la fenêtre et des éléments.
-    # Ajout du listener lors de clic sur "Envoyer"
+    # Initialization of the window and its elements
+    # Adds an on click listener on "Send"
     def __init__(self, parent):
 
 
         if len(sys.argv) < 4:
-            print("Utilisation de la commande :")
-            print("     Client.py <ip locale du serveur rabbitMq> <utilisateur> <mot de passe> <port> (optionnel : 5672 par defaut)")
+            print("Command usage :")
+            print("     Client.py <RabbitMq IP address> <user> <password> <port> (optionnal : default 5672)")
             sys.exit()
         Frame.__init__(self, parent)   
          
@@ -30,39 +30,39 @@ class Fenetre(Frame):
         self.centerWindow()
         self.initUI()
 
-        # Le pid de l'application est récupéré afin de nommer la queue dans laquelle le commanditaire attendra les résultats du job
+        # The pid is used to name the queue where the client will wait for the job results
         pid = os.getpid()
 
       
         
         credentials = pika.PlainCredentials(sys.argv[2], sys.argv[3])
         port = 5672
-        # Si un port RabbitMq à été défini en argument de ligne de commande
+        # If a RabbitMq port has been defined in argument
         if len(sys.argv) == 5:
             port = int(sys.argv[4])
-        # Création et établissement de la connexion à la file de requete de job
+        # Creation and establishement of the job result message queue connection
         try:
             parameters = pika.ConnectionParameters(sys.argv[1], port, '/', credentials)
             self.connection = pika.BlockingConnection(parameters)
-            # Création et déclaration du canal de requete de job
+            # Creation and declaration of the job request channel
             self.channelJobRequest = self.connection.channel()
-        # Si la connexion a échouée, une erreur est levée et l'application est arrêtée
+        # If the connection has failed, an error is raised an the application is stopped
         except pika.exceptions.ConnectionClosed, ConnectionError:
-            print("Erreur lors de la connexion au serveur RabbitMq")
+            print("Error while connecting to the RabbitMq server")
             print(ConnectionError.message)
             sys.exit()
-        # Si l'authentification à la file à échoue, une erreur est levée et l'application est arrêtée
+        # If the athentification to the queue has failed, an error is raised and the application is stopped
         except pika.exceptions.ProbableAuthenticationError, AuthError:
-            print("Erreur lors de l'authentification au serveur RabbitMq")
+            print("RabbitMq authentification error")
             print(AuthError.message)
             sys.exit()
 
 
-        # Déclaration de la file de requête de jpb
+        # job request queue declaration
         self.channelJobRequest.queue_declare(queue='job_queue', durable=True)
 
         
-        # Création et déclaration du canal de reception du resutlat
+        # Creation and declaration of the job result channel
         self.channelJobResult = self.connection.channel()
         self.channelJobResult.exchange_declare(exchange='result_queue',
                                                     type='direct')
@@ -70,15 +70,15 @@ class Fenetre(Frame):
         self.result = self.channelJobResult.queue_declare(exclusive=True)
         self.queue_name = self.result.method.queue
 
-        # Le canal de reception des resultats est lié à la file correspondante
-        # la file de reception est nommée d'après le pid de l'application et l'adresse ip locale de la machine
+        # The result channel is tied to the corresponding queue
+        # The reception quque is named after the application's pid and the local IP address
         self.channelJobResult.queue_bind(exchange='result_queue',
                                queue=self.queue_name,
                                routing_key=str(pid) + socket.gethostbyname(socket.gethostname()))
 
         
 
-    # Fonction permettant de centrer la fenêtre créée sur l'écran
+    # Function allowing to center the window in the screen
     def centerWindow(self):
       
         w = 800
@@ -94,105 +94,104 @@ class Fenetre(Frame):
 
     def initUI(self):
 
-        # Déclaration des variables associées aux éléments de saisie de la fenêtre
+        # Global variables declaration
+        # Those variables are associatet to the different window's inputs
         global txtNomCommande, txtArguments, txtDatasource, txtPath, txtResultat, txtLogin, txtPassword, txtNbExec
 
-        self.parent.title("Commanditaire")
+        self.parent.title("Client")
         self.style = Style()
         self.style.theme_use("default")
 
         self.pack(fill=BOTH, expand=1)
 
 
-        # Association du bouton à l'évènement permettant la fermeture de la fenêtre
+        # Associate the button to the window close event
         quitButton = Button(self, text="Quitter",
             command=self.quit)
         quitButton.place(x=700, y=550)
 
-        Label(self, text="Saisissez les informations du programme que vous souhaitez faire éxecuter : ").grid(row=0, column=0, sticky=W)
+        Label(self, text="Fill the informations relative to the program you want to execute : ").grid(row=0, column=0, sticky=W)
         
-        # Creation Frame formulaire saisie de job
+        # Frame creation
         formFrame = Frame(self)
         formFrame.pack()
         formFrame.place(x=10, y=30)
 
         
 
-        # label et input saisie nom commande
-        Label(formFrame, text="Commande : ").grid(row=1, column=0, sticky=W)
+        Label(formFrame, text="Command : ").grid(row=1, column=0, sticky=W)
         txtNomCommande = StringVar()
         txtNomCommande = Entry(formFrame, textvariable=txtNomCommande)
         txtNomCommande.grid(row=1, column=1, sticky=W)
 
-        # label et input saisie arguments
         Label(formFrame, text="Arguments : ").grid(row=2, column=0, sticky=W)
         txtArguments = StringVar()
         txtArguments = Entry(formFrame, textvariable=txtArguments)
         txtArguments.grid(row=2, column=1, sticky=W)
 
-        # label et input saisie datasource
+       
         Label(formFrame, text="Datasource : ").grid(row=3, column=0, sticky=W)
         txtDatasource = StringVar()
         txtDatasource = Entry(formFrame, textvariable=txtDatasource)
         txtDatasource.grid(row=3, column=1, sticky=W)
 
 
-        # label et input saisie path
-        Label(formFrame, text="Chemin : ").grid(row=4, column=0, sticky=W)
+        Label(formFrame, text="Path : ").grid(row=4, column=0, sticky=W)
         txtPath = StringVar()
         txtPath = Entry(formFrame, textvariable=txtPath)
         txtPath.grid(row=4, column=1, sticky=W)
 
-        # label et input saisie login
         Label(formFrame, text="Login : ").grid(row=5, column=0, sticky=W)
         txtLogin = StringVar()
         txtLogin = Entry(formFrame, textvariable=txtLogin)
         txtLogin.grid(row=5, column=1, sticky=W)
 
-        # label et input saisie mot de passe
-        Label(formFrame, text="Mot de passe : ").grid(row=6, column=0, sticky=W)
+        Label(formFrame, text="Password : ").grid(row=6, column=0, sticky=W)
         txtPassword = StringVar()
         txtPassword = Entry(formFrame, textvariable=txtPassword, show="*")
         txtPassword.grid(row=6, column=1, sticky=W)
 
-        # label et input saisie nbExec
-        Label(formFrame, text="Nombre d'executions ").grid(row=7, column=0, sticky=W)
+        Label(formFrame, text="Number of executions ").grid(row=7, column=0, sticky=W)
         txtNbExec = StringVar()
         txtNbExec = Entry(formFrame, textvariable=txtNbExec)
         txtNbExec.grid(row=7, column=1, sticky=W)
 
         
-        # Création et assoication du bouton d'envoi de requête à la fonction d'envoi de requête
-        submitJob = Button(formFrame, text="Envoyer", command=self.sendJob).grid(row=8, column=0, sticky=W)
+        submitJob = Button(formFrame, text="Send", command=self.sendJob).grid(row=8, column=0, sticky=W)
 
 
-        # Creation Frame resultat
         resultFrame = Frame(self)
         resultFrame.pack()
         resultFrame.place(x=300, y=30)
 
-        # MessageBox resultat (affichage du xml)
+        # MessageBox result
         txtResultat = Text (resultFrame)
         txtResultat.grid(row=0, column=0, sticky=W)
 
-    # Procédure de fermeture de la fenêtre
+    # Window close procedure
     def quit(self):
-        # Si une connection a étée ouverte, elle est fermée avant la fermeture de l'application
+        # If a connection has been opened, it is closed 
         if self.connection.is_open:
             self.connection.close()
         exit(0)
 
-    # Procédure d'envoi de requête de job
-    # Cette procédure est appelée lorsqu'on clique sur le bouton "Envoyer"
+    # job request sending procedure
+    # This procedure is called when the user clicks on "Send"
     def sendJob(self):
         txtResultat.delete(1.0, END)
-        self.printResult("Calcul en cours, veuillez patienter")
+        self.printResult("Execution in progress...")
  
-        # Création de l'objet de requête à partir des informations saisies
+        
         request = jobRequest(txtNomCommande.get(), txtArguments.get(), txtDatasource.get(), txtPath.get(), txtLogin.get(), txtPassword.get(), str(os.getpid()) + socket.gethostbyname(socket.gethostname()) )
         
 
         argTaille = request.args
+
+
+
+        # ----------------------------------------------------------------------------------------------------------------------------------------------------
+        # THIS PART IS MADE FOR THE N QUEEN PROBLEM AND NOTHING ELSE, IT WILL BE REMOVED IN THE FUTURE AS THE SOFTWARE WILL ALLOW THE EXECUTION OF ANY PROBLEM
+        # ----------------------------------------------------------------------------------------------------------------------------------------------------
 
 
         # On définit le nombre de colonne que chaque executeur devra calculer en fonction du nombre total de colonnes et du nombre d'éxecutions demandées

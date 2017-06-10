@@ -17,20 +17,20 @@ def sigint_handler(signal, frame):
     connection.close()
     sys.exit(0)
 
-# Procedure de connexion au serveur distant et de télechargement du fichier à exécuter
-def serveurConnection(request):
+# Connects to the remote server and downloads the file to execute
+def serverConnection(request):
 
     dir = os.path.dirname(__file__)
     targetDir = os.path.join(dir, "scripts")
-    # Si le fichier à exécuter n'est pas présent en local
+    # If the file to execute is not present locally
     if os.path.isfile(targetDir + "/"+ request.command) != True :
         try:
-            # Création et établissement de la connexion au serveur
+            # Creates and establishes the connexion to the server
             transport = paramiko.Transport(request.url, 22)
             transport.connect(username = request.login, password = request.password)
-        # Si la connexion a échouée, une erreur est levée et est envoyée dans la file de résultat de job
+        # If the connexion failed, an error is raised and sent in the jobResult queue
         except paramiko.SSHException, sshError:
-            print "Erreur lors de la connexion avec le serveur distant : " + sshError.message
+            print "Error - Failed to connect to the remote server : " + sshError.message
             error = jobErrorResult("SSH Error", str(sshError.args), sshError.message)
 
             transport.close()
@@ -40,12 +40,12 @@ def serveurConnection(request):
         sftp = paramiko.SFTPClient.from_transport(transport)
         
         try:
-            # Télechargement du fichier à exécuter
-            # Le fichier est placé dans le dossier "scripts" de l'application
+            # Download the file to execute
+            # The file is stored in the "scripts" folder
             sftp.get( request.path + "/" + request.command, targetDir + "/" + request.command)
         except IOError, fileError:
-            # Si le fichier spécifié est introuvable, une erreur est levée et est envoyée dans la file de résultat de job
-            print "Erreur lors de la récupération du fichier : " + fileError.message
+            # If the connexion failed, an error is raised and sent in the jobResult queue
+            print "Error - Failed to download the file : " + fileError.message
             error = jobErrorResult("File Error", str(fileError.args), fileError.message)
             sftp.close()
             transport.close()
@@ -54,30 +54,30 @@ def serveurConnection(request):
         transport.close()
 
     
-    # Une fois le fichier téléchargé, il est executé
+    # Once the file is downloaded, it is executed
     try:
-        # La chaine d'argument est divisé selon les espaces, permettant de traiter chaque arguement indépendament
+        #The arguments chain is split around spaces, allowing to tread them independently
         argsTab = request.args.split()
         
-        # Le fichier est exécuté
+        # The file is executed
         programReturnValue = subprocess.check_output(["python", "scripts/" + request.command, argsTab[0], argsTab[1], argsTab[2]])
     
     except subprocess.CalledProcessError, e:
-        # Si l'exécution échoue, une erreur est levée et est envoyée dans la file de résultat de job
-        print "Erreur d'execution : " + e.output
+        # If the execution failed, an error is raised and is sent in the jobResult queue
+        print "Execution error : " + e.output
         error = jobErrorResult("Execution Error", e.returncode, e.message)
         return error.toXML()
         
-    # Une fois l'exécution terminée, le résultat est recupéré dans un objet "JobResult"
+    # Once the execution is finished, the result is stored in a "JobResult" object
     outputTab = programReturnValue.split(":")
     result = jobResult(request.command + " " + request.args, outputTab[0], outputTab[1])
 
     print "Result : " + programReturnValue
-    # Le resultat est retouné sous forme de chaine XML
+    # The result is sent as an XML string
     return result.toXML()
 
 
-# Ce callback est appelé lorsqu'une requête de job est récupérée
+# This callback is called whenever a job request is received
 def callbackJobRequest(ch, method, properties, body):
     print(body)
     ch.basic_ack(delivery_tag = method.delivery_tag)
@@ -86,7 +86,7 @@ def callbackJobRequest(ch, method, properties, body):
     request.XmlToObject(body)
     
     print(request.toString())
-    # Appel de la procédure permettant le téléchargement du fichier à exécuter
+    # Calls the procedure that downloads the file to execute
     response = serveurConnection(request)
     channelJobResult.basic_publish(exchange='result_queue',
                           routing_key=request.sender,
@@ -102,55 +102,56 @@ def callbackJobRequest(ch, method, properties, body):
 def main():
 
     if len(sys.argv) < 4:
-        print("Utilisation de la commande :")
-        print("     Serveur.py <ip locale du serveur rabbitMq> <utilisateur> <mot de passe> <port> (optionnel : 5672 par defaut)")
+        print("Command usage :")
+        print("     Serveur.py <rabbitMq server local IP> <user> <password> <port> (optionnal : default : 5672)")
         
         sys.exit()
 
-    # On installe un signal d'interruption de l'application
+    # Sets up the interruption signal
     signal.signal(signal.SIGINT, sigint_handler)
 
     global connection, channelJobResult
     credentials = pika.PlainCredentials(sys.argv[2], sys.argv[3])
     port = 5672
-    # Si un port RabbitMq à été défini en argument de ligne de commande
+    # If a RabbitMq port has been defined in argument
     if len(sys.argv) == 5:
         port = int(sys.argv[4])
-    # Création et établissement de la connexion à la file de requete de job
+
+    # Creation and establishement of the job request queue connection
     try:
         parameters = pika.ConnectionParameters(sys.argv[1], port, '/', credentials)
         connection = pika.BlockingConnection(parameters)
 
-    # Si la connexion a échouée, une erreur est levée et l'application est arrêtée
+    # If the connection has failed, an error is raised ans the application is stopped
     except pika.exceptions.ConnectionClosed, ConnectionError:
-        print("Erreur lors de la connexion au serveur RabbitMq")
+        print("Error while connection to the RabbitMq server")
         print(ConnectionError.message)
         sys.exit()
-    # Si l'authentification à la file à échoue, une erreur est levée et l'application est arrêtée
+    # If the queue authentification has failed, an error is raised and the application is stopped
     except pika.exceptions.ProbableAuthenticationError, AuthError:
-        print("Erreur lors de l'authentification au serveur RabbitMq")
+        print("Error while authenticating to the RabbitMq server")
         print(AuthError.message)
         sys.exit()
 
-    # Creation et declaration du channel de requete de job
+    # Creation and declaration of the job request channel
     channelJobRequest = connection.channel()
 
     channelJobRequest.queue_declare(queue='job_queue', durable=True)
 
-    # Creation et declaration du channel de reponse
+    # Creation and declaration of the response channel
     channelJobResult = connection.channel()
 
     channelJobResult.exchange_declare(exchange='result_queue',
                                       type='direct')
-    # L'application indique qu'elle ne peut recevoir qu'un message à la fois
+    # The application indicates that it cannot receive more than one message at a time
     channelJobRequest.basic_qos(prefetch_count=1)
 
     channelJobRequest.basic_consume(callbackJobRequest,
                           queue='job_queue'
                           )
 
-    print(' [*] En attente de message. Pour quitter, appuyez sur CTRL+C')
-    # Commence à consommer les messages dans la file de requête de job
+    print(' [*] Awaiting message, to exit, press CTRL+C')
+    # Starts to consume messages in the job request queue
     channelJobRequest.start_consuming()
     
     

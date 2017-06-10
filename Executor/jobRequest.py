@@ -54,36 +54,36 @@ class jobRequest(object):
     def toString(self):
         str = "";
         if self.command != None :
-            str += "Commande : " + self.command + "\n"
+            str += "Command : " + self.command + "\n"
         else:
-            str += "Commande : Aucune \n"
+            str += "Command : None \n"
 
         if self.args != None :
             str += "Arguments : " + self.args + "\n"
         else:
-            str += "Arguments : Aucuns \n"
+            str += "Arguments : None \n"
 
         if self.url != None:
             str += "Datasource : " + self.url + "\n"
         else:
-            str += "Datasource : Aucune \n"
+            str += "Datasource : None \n"
 
         if self.url != None:
-            str += "Chemin : " + self.path + "\n"
+            str += "Path : " + self.path + "\n"
         else:
-            str += "Chemin : Aucun \n"
+            str += "Path : None \n"
 
         if self.login != None:
             str += "login : " + self.login + "\n"
         else:
-            str += "login : Aucune \n"
+            str += "login : None \n"
 
         if self.password != None:
             str += "password : " + self.password + "\n"
         else:
-            str += "password : Aucune \n"
+            str += "password : None \n"
 
-        str += "Emmiteur : " + self.sender + "\n"
+        str += "Emmitor : " + self.sender + "\n"
 
         return str;
 

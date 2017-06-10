@@ -6,16 +6,17 @@
     <ProjectGuid>0eb41c06-f0ad-4822-b9c2-8b9bfc23a47c</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>Executeur.py</StartupFile>
+    <StartupFile>Executor.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>Executeur</Name>
+    <Name>Executor</Name>
     <RootNamespace>Serveur</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
     <CommandLineArguments>localhost guest guest</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
+    <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -35,7 +36,7 @@
     <Compile Include="jobResult.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Executeur.py" />
+    <Compile Include="Executor.py" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

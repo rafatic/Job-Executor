@@ -6,12 +6,12 @@
     <ProjectGuid>00316490-a8df-43a9-b64d-dbf7620a79ff</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>Commanditaire.py</StartupFile>
+    <StartupFile>Client.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>Commanditaire</Name>
+    <Name>Client</Name>
     <RootNamespace>Client</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
     <CommandLineArguments>localhost guest guest</CommandLineArguments>
@@ -28,8 +28,8 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Commanditaire.py" />
-    <Compile Include="fenetre.py">
+    <Compile Include="Client.py" />
+    <Compile Include="window.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="jobErrorResult.py">

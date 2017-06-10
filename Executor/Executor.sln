@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Executeur", "Executeur.pyproj", "{0EB41C06-F0AD-4822-B9C2-8B9BFC23A47C}"
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Executor", "Executor.pyproj", "{0EB41C06-F0AD-4822-B9C2-8B9BFC23A47C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
